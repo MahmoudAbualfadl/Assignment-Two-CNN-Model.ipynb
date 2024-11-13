@@ -151,5 +151,12 @@ print(f"ANN Test Loss: {ann_test_loss:.2f}, ANN Test MAE: {ann_test_mae:.2f}")
 cnn_model.save('cnn_model.h5')
 ann_model.save('ann_model.h5')
 
+  <div>
+  <img src="https://github.com/user-attachments/assets/59bcb958-4497-4d99-b3d3-851466e6dc4c">
+</div>
+
+  <div>
+  <img src="https://github.com/user-attachments/assets/218c38e6-2133-47fe-bf4b-5cea590a8c02">
+</div>
 
 
