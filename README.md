@@ -54,3 +54,102 @@ This project implements a Convolutional Neural Network (CNN) to predict the rota
 
 The CNN model outperforms the ANN model in predicting rotation angles with a significantly lower error. This demonstrates that CNNs are more effective for image-based regression tasks, particularly those that involve spatial relationships such as rotation angle estimation.
 
+
+import numpy as np
+import tensorflow as tf
+import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
+
+# Load your dataset (assumed to be already preprocessed and stored in .npy files)
+train_images = np.load('train_images.npy')
+train_angles = np.load('train_angles.npy')
+test_images = np.load('test_images.npy')
+test_angles = np.load('test_angles.npy')
+
+# Normalize images to range [0, 1]
+train_images = train_images.astype('float32') / 255.0
+test_images = test_images.astype('float32') / 255.0
+
+# Split training data into training and validation sets
+X_train, X_val, y_train, y_val = train_test_split(train_images, train_angles, test_size=0.2, random_state=42)
+
+# CNN Model Architecture
+cnn_model = tf.keras.Sequential([
+    tf.keras.layers.Conv2D(32, (3, 3), activation='relu', input_shape=(28, 28, 1)),
+    tf.keras.layers.MaxPooling2D((2, 2)),
+    tf.keras.layers.Conv2D(64, (3, 3), activation='relu'),
+    tf.keras.layers.MaxPooling2D((2, 2)),
+    tf.keras.layers.Conv2D(64, (3, 3), activation='relu'),
+    tf.keras.layers.Flatten(),
+    tf.keras.layers.Dense(64, activation='relu'),
+    tf.keras.layers.Dropout(0.5),
+    tf.keras.layers.Dense(1)
+])
+
+# Compile the CNN model
+cnn_model.compile(optimizer='adam', loss='mean_squared_error', metrics=['mae'])
+
+# Train the CNN model
+history = cnn_model.fit(X_train, y_train, validation_data=(X_val, y_val), epochs=20, batch_size=64)
+
+# Evaluate the CNN model on test data
+cnn_test_loss, cnn_test_mae = cnn_model.evaluate(test_images, test_angles)
+
+# ANN Model Architecture (for comparison)
+ann_model = tf.keras.Sequential([
+    tf.keras.layers.Flatten(input_shape=(28, 28, 1)),
+    tf.keras.layers.Dense(128, activation='relu'),
+    tf.keras.layers.Dropout(0.3),
+    tf.keras.layers.Dense(64, activation='relu'),
+    tf.keras.layers.Dropout(0.3),
+    tf.keras.layers.Dense(1)
+])
+
+# Compile the ANN model
+ann_model.compile(optimizer='adam', loss='mean_squared_error', metrics=['mae'])
+
+# Train the ANN model
+ann_history = ann_model.fit(X_train, y_train, validation_data=(X_val, y_val), epochs=20, batch_size=64)
+
+# Evaluate the ANN model on test data
+ann_test_loss, ann_test_mae = ann_model.evaluate(test_images, test_angles)
+
+# Plot training history for CNN and ANN
+plt.figure(figsize=(12, 6))
+
+# Plot loss
+plt.subplot(1, 2, 1)
+plt.plot(history.history['loss'], label='CNN Training Loss')
+plt.plot(history.history['val_loss'], label='CNN Validation Loss')
+plt.plot(ann_history.history['loss'], label='ANN Training Loss', linestyle='--')
+plt.plot(ann_history.history['val_loss'], label='ANN Validation Loss', linestyle='--')
+plt.title('Model Loss')
+plt.xlabel('Epochs')
+plt.ylabel('Loss')
+plt.legend()
+
+# Plot MAE
+plt.subplot(1, 2, 2)
+plt.plot(history.history['mae'], label='CNN Training MAE')
+plt.plot(history.history['val_mae'], label='CNN Validation MAE')
+plt.plot(ann_history.history['mae'], label='ANN Training MAE', linestyle='--')
+plt.plot(ann_history.history['val_mae'], label='ANN Validation MAE', linestyle='--')
+plt.title('Model MAE')
+plt.xlabel('Epochs')
+plt.ylabel('Mean Absolute Error')
+plt.legend()
+
+plt.tight_layout()
+plt.show()
+
+# Comparison of results
+print("Comparison of Test Results:")
+print(f"CNN Test Loss: {cnn_test_loss:.2f}, CNN Test MAE: {cnn_test_mae:.2f}")
+print(f"ANN Test Loss: {ann_test_loss:.2f}, ANN Test MAE: {ann_test_mae:.2f}")
+
+# Save models
+cnn_model.save('cnn_model.h5')
+ann_model.save('ann_model.h5')
+
+
+
